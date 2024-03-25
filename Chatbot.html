@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>College Chatbot</title>
+<style>
+     body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f8f9fa;
+    }
+    .chat-container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+    }
+    .chat-history {
+        overflow-y: scroll;
+        height: 300px; /* Adjust height as needed */
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+    }
+    .message {
+        margin-bottom: 10px;
+    }
+    .user-message {
+        background-color: #cce5ff;
+        padding: 10px;
+        border-radius: 5px;
+        max-width: 70%;
+        word-wrap: break-word;
+    }
+    .bot-message {
+        background-color: #f0f0f0;
+        padding: 10px;
+        border-radius: 5px;
+        max-width: 70%;
+        word-wrap: break-word;
+    }
+    .option-button {
+        background-color: #007bff;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+    }
+    .option-button:hover {
+        background-color: #0056b3;
+    }
+    #user-input {
+        width: calc(100% - 85px);
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-right: 10px;
+        font-size: 16px;
+    }
+    #send-button {
+        background-color: #28a745;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    #send-button:hover {
+        background-color: #218838;
+    }
+    .typing-indicator {
+        font-style: italic;
+        color: #999;
+    }
+    .loading-spinner {
+        display: none;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+        position: absolute;
+        top: 50%;
+        right: 15px;
+        transform: translateY(-50%);
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+</head>
+<body>
+<div id="chat-history" class="chat-history">
+    <div class="message bot-message">Welcome to College Chatbot! How can I assist you?</div>
+</div>
+<div id="user-input-container" style="display: flex;">
+    <input type="text" id="user-input" placeholder="Type your message..." style="flex: 1;">
+    <button id="send-button" onclick="handleUserInput()" style="margin-left: 10px;">Send</button>
+</div>
+<div id="typing-indicator" class="typing-indicator" style="display: none;">Bot is typing...</div>
+<div id="loading-spinner" class="loading-spinner" style="display: none;"></div>
+<script>
+    function handleUserInput() {
+    var userInput = document.getElementById("user-input").value.trim().toLowerCase();
+    if (userInput !== "") {
+        appendUserMessage(userInput); // Append user input to chat history
+        if (checkForGreetings(userInput)) {
+            handleGreeting();
+        } else {
+            handleUserResponse(userInput);
+        }
+        document.getElementById("user-input").value = "";
+    }
+}
+
+    function appendUserMessage(message) {
+        var chatHistory = document.getElementById("chat-history");
+        var userMessageElement = document.createElement("div");
+        userMessageElement.className = "user-message";
+        userMessageElement.textContent = message;
+        chatHistory.appendChild(userMessageElement);
+    }
+
+    function appendBotMessage(message) {
+        var chatHistory = document.getElementById("chat-history");
+        var botMessageElement = document.createElement("div");
+        botMessageElement.className = "bot-message";
+        botMessageElement.innerHTML = message;
+        chatHistory.appendChild(botMessageElement);
+    }
+
+    function displayOptions(options) {
+        var optionResponse = document.createElement("div");
+        optionResponse.className = "bot-message";
+        options.forEach(option => {
+            var button = document.createElement("button");
+            button.className = "option-button";
+            button.textContent = option.text;
+            button.onclick = function() {
+                if (option.value.startsWith('http')) {
+                    window.open(option.value, '_blank'); // Open links in new tab
+                } else {
+                    handleUserResponse(option.value);
+                }
+            };
+            optionResponse.appendChild(button);
+        });
+        document.getElementById("chat-history").appendChild(optionResponse);
+    }
+     function handleGreeting() {
+        var greetings = ["Hi!", "Hello!", "Hey there!", "Nice to see you!", "Greetings!"];
+        var randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+        appendBotMessage(randomGreeting + " How can I assist you today?");
+    }
+
+    function checkForGreetings(message) {
+        var greetings = ["hi","hii","hello", "hey", "howdy", "hi there", "hello there"];
+        return greetings.includes(message);
+    }
+
+    function handleUserResponse(userInput) {
+        var botResponse;
+        switch(userInput.toLowerCase()) {
+            case "faculty":
+                botResponse = "Please select a department for faculty details:";
+                appendBotMessage(botResponse);
+                displayOptions([
+                    { text: "Chemical Engineering", value: "chemical_engineering_faculty" },
+                    { text: "Civil Engineering", value: "civil_engineering_faculty" },
+                    { text: "Computer Science & Engineering", value: "computer_science_engineering_faculty" },
+                    { text: "Electronics & Communication Engineering", value: "electronics_communication_engineering_faculty" }
+                ]);
+                break;
+            case "students":
+                botResponse = "Please select a department for student details:";
+                appendBotMessage(botResponse);
+                displayOptions([
+                    { text: "Chemical Engineering", value: "chemical_engineering_students" },
+                    { text: "Civil Engineering", value: "civil_engineering_students" },
+                    { text: "Computer Science & Engineering", value: "computer_science_engineering_students" },
+                    { text: "Electronics & Communication Engineering", value: "electronics_communication_engineering_students" }
+                ]);
+                break;
+            case "academic_calendar":
+                botResponse = "The academic calendar can be found <a href='https://rvrjcce.ac.in/academic.php' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "placement_details":
+                botResponse = "For placement details, please visit <a href='https://rvrjcce.ac.in/placement_statistics.php?menu=plcmnt' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "college_website":
+                botResponse = "You can visit our college website at <a href='https://rvrjcce.ac.in/#' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "moodle":
+                botResponse = "To access Moodle for e-learning courses, visit <a href='http://courses.rvrjc.ac.in/moodle/' target='_blank'>Moodle</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "fee_payment":
+                botResponse = "Please select a fee payment option:";
+                appendBotMessage(botResponse);
+                displayOptions([
+                    { text: "Bus Fee", value: "bus_fee" },
+                    { text: "Tuition Fee", value: "tuition_fee" },
+                    { text: "Examination Fee", value: "                examination_fee" }
+                ]);
+                break;
+            case "latest_news& Notices":
+                botResponse = "For the latest news and notices, please visit <a href='https://rvrjcce.ac.in/latest_news.php' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "examination_results":
+                botResponse = "Please select an option for examination results:";
+                appendBotMessage(botResponse);
+                displayOptions([
+                    { text: "Result Portal", value: "result_portal" },
+                    { text: "Register No Wise Results", value: "register_no_results" }
+                ]);
+                break;
+            case "result_portal":
+                botResponse = "Here is the result portal: <a href='https://rvrjcce.ac.in/examcell/results/batch20/index.php' target='_blank'>Result Portal</a>";
+                appendBotMessage(botResponse);
+                break;
+            case "register_no_results":
+                botResponse = "You can check register number wise results <a href='https://rvrjcce.ac.in/examcell/results/regnoresultsR.php' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "bus_fee":
+                botResponse = "You can pay the bus fee <a href='https://rvrjcce.ac.in/busfee/busfee.php' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "tuition_fee":
+                botResponse = "You can pay the tuition fee <a href='https://rvrjcce.ac.in/tuitionfee/tuitionfee.php' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "examination_fee":
+                botResponse = "You can pay the examination fee <a href='https://rvrjcce.ac.in/examfee/examfee.php' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "chemical_engineering_faculty":
+                botResponse = "Chemical Engineering Faculty Details:";
+                appendBotMessage(botResponse);
+                appendBotMessage("<a href='http://che.rvrjcce.ac.in/faculty.html' target='_blank'>Faculty Information</a>");
+                break;
+            case "chemical_engineering_students":
+                botResponse = "Chemical Engineering Student Details:";
+                appendBotMessage(botResponse);
+                appendBotMessage("<a href='http://che.rvrjcce.ac.in/students.html' target='_blank'>Student Information</a>");
+                break;
+            case "civil_engineering_faculty":
+                botResponse = "Civil Engineering Faculty Details:";
+                appendBotMessage(botResponse);
+                appendBotMessage("<a href='http://ce.rvrjcce.ac.in/faculty.php' target='_blank'>Faculty Information</a>");
+                break;
+            case "civil_engineering_students":
+                botResponse = "Civil Engineering Student Details:";
+                appendBotMessage(botResponse);
+                appendBotMessage("<a href='http://ce.rvrjcce.ac.in/students.php' target='_blank'>Student Information</a>");
+                break;
+            case "computer_science_engineering_faculty":
+                botResponse = "Computer Science & Engineering Faculty Details:";
+                appendBotMessage(botResponse);
+                appendBotMessage("<a href='http://cse.rvrjcce.ac.in/faculty.php' target='_blank'>Faculty Information</a>");
+                break;
+            case "computer_science_engineering_students":
+                botResponse = "Computer Science & Engineering Student Details:";
+                appendBotMessage(botResponse);
+                appendBotMessage("<a href='http://cse.rvrjcce.ac.in/students.php' target='_blank'>Student Information</a>");
+                break;
+            case "electronics_communication_engineering_faculty":
+                botResponse = "Electronics & Communication Engineering Faculty Details:";
+                appendBotMessage(botResponse);
+                appendBotMessage("<a href='http://ece.rvrjcce.ac.in/ece_faculty.php' target='_blank'>Faculty Information</a>");
+                break;
+            case "electronics_communication_engineering_students":
+                botResponse = "Electronics & Communication Engineering Student Details:";
+                appendBotMessage(botResponse);
+                appendBotMessage("<a href='http://ece.rvrjcce.ac.in/ece_students.php' target='_blank'>Student Information</a>");
+                break;
+            case "syllabus":
+                botResponse = "Please select a department for syllabus details:";
+                appendBotMessage(botResponse);
+                displayOptions([
+                    { text: "Chemical Engineering", value: "chemical_engineering_syllabus" },
+                    { text: "Civil Engineering", value: "civil_engineering_syllabus" },
+                    { text: "Computer Science & Engineering", value: "computer_science_engineering_syllabus" },
+                    { text: "Electronics & Communication Engineering", value: "electronics_communication_engineering_syllabus" }
+                ]);
+                break;
+            case "timetables":
+                botResponse = "Please select a department for timetables:";
+                appendBotMessage(botResponse);
+                displayOptions([
+                    { text: "Chemical Engineering", value: "chemical_engineering_timetables" },
+                    { text: "Civil Engineering", value: "civil_engineering_timetables" },
+                    { text: "Computer Science & Engineering", value: "computer_science_engineering_timetables" },
+                    { text: "Electronics & Communication Engineering", value: "electronics_communication_engineering_timetables" }
+                ]);
+                break;
+            case "laboratories":
+                botResponse = "Please select a department for laboratory details:";
+                appendBotMessage(botResponse);
+                displayOptions([
+                    { text: "Chemical Engineering", value: "chemical_engineering_laboratories" },
+                    { text: "Civil Engineering", value: "civil_engineering_laboratories" },
+                    { text: "Computer Science & Engineering", value: "computer_science_engineering_laboratories" },
+                    { text: "Electronics & Communication Engineering", value: "electronics_communication_engineering_laboratories" }
+                ]);
+                break;
+            case "chemical_engineering_syllabus":
+                botResponse = "Syllabus for Chemical Engineering can be found <a href='http://che.rvrjcce.ac.in/syllabus.html' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "civil_engineering_syllabus":
+                botResponse = "Syllabus for Civil Engineering can be found <a href='http://ce.rvrjcce.ac.in/syllabus/' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "computer_science_engineering_syllabus":
+                botResponse = "Syllabus for Computer Science & Engineering can be found <a href='http://cse.rvrjcce.ac.in/syllabus/' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "electronics_communication_engineering_syllabus":
+                botResponse = "Syllabus for Electronics & Communication Engineering can be found <a href='http://ece.rvrjcce.ac.in/ece_syllabus.php' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "chemical_engineering_timetables":
+                botResponse = "Timetables for Chemical Engineering can be found <a href='http://che.rvrjcce.ac.in/Timetables.html' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "civil_engineering_timetables":
+                botResponse = "Timetables for Civil Engineering can be found <a href='http://ce.rvrjcce.ac.in/timetable.php' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "computer_science_engineering_timetables":
+                botResponse = "Timetables for Computer Science & Engineering can be found <a href='http://cse.rvrjcce.ac.in/time_table.php' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "electronics_communication_engineering_timetables":
+                botResponse = "Timetables for Electronics & Communication Engineering can be found <a href='http://ece.rvrjcce.ac.in/ece_timetable.php' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "chemical_engineering_laboratories":
+                botResponse = "Laboratories information for Chemical Engineering can be found <a href='http://che.rvrjcce.ac.in/facilities.html' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "civil_engineering_laboratories":
+                botResponse = "Laboratories information for Civil Engineering can be found <a href='http://ce.rvrjcce.ac.in/labs.php' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            case "computer_science_engineering_laboratories":
+                botResponse = "Laboratories information for Computer Science & Engineering can be found <a href='http://cse.rvrjcce.ac.in/labs.php' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+             case "electronics_communication_engineering_laboratories":
+                botResponse = "Laboratories information for Electronics & Communication Engineering can be found <a href='http://ece.rvrjcce.ac.in/ece_laboratories.php' target='_blank'>here</a>.";
+                appendBotMessage(botResponse);
+                break;
+            default:
+                botResponse = "Could you please specify the category your query falls under? You can choose from the options provided.";
+                appendBotMessage(botResponse);
+                displayOptions([
+                    { text: "Faculty", value: "faculty" },
+                    { text: "Students", value: "students" },
+                    { text: "Academic Calendar", value: "academic_calendar" },
+                    { text: "Placement Details", value: "placement_details" },
+                    { text: "College Website", value: "college_website" },
+                    { text: "Moodle", value: "moodle" },
+                    { text: "Fee Payment", value: "fee_payment" },
+                    { text: "Latest News & Notices", value: "latest_news_notices" },
+                    { text: "Examination Results", value: "examination_results" },
+                    { text: "Syllabus", value: "syllabus" },
+                    { text: "Timetables", value: "timetables" },
+                    { text: "Laboratories", value: "laboratories" }
+                ]);
+        }
+        scrollToBottom();
+    }
+    
+
+    function scrollToBottom() {
+        var chatHistory = document.getElementById("chat-history");
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+</script>
+</body>
+</html>
+
